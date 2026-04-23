@@ -1,6 +1,6 @@
 ---
 name: the-algorithm
-description: Interactive decision framework adapted from Elon Musk's five-step method. Walks you through discrete AskUserQuestion prompts — one at a time — to find the real bottleneck, reason from first principles, and commit to the simplest reliable approach. Use BEFORE acting on any non-trivial decision — feature request, refactor, migration, new tool/vendor/hire, process change, meeting, policy, roadmap item. Skip for single-line typos or when the user has given explicit "just do it" instructions. Prevents over-engineering, scope creep, and premature automation. Five steps — 1) Question 2) Delete and Simplify 3) Optimise 4) Accelerate (get it working end-to-end) 5) Automate — strictly in order, with Steps 2↔3 looping as needed when Step 4 uncovers failures.
+description: Interactive decision framework adapted from Elon Musk's five-step method. Walks you through discrete AskUserQuestion prompts — one at a time — to find the real bottleneck, reason from first principles, and commit to the simplest reliable approach. Use BEFORE acting on any non-trivial decision — feature request, refactor, migration, new tool/vendor/hire, process change, meeting, policy, roadmap item. Skip for single-line typos or when the user has given explicit "just do it" instructions. Prevents over-engineering, scope creep, and premature automation. Five steps — 1) Question 2) Delete 3) Optimise (simplify + options + experiments) 4) Accelerate (get it working end-to-end) 5) Automate — strictly in order, with Steps 2↔3 looping as needed when Step 4 uncovers failures.
 ---
 
 # The Algorithm
@@ -12,8 +12,8 @@ Default bias: **most decisions end at Step 2.** Steps 3, 4, and 5 only run when 
 The five steps:
 
 1. **Question** the requirement — reason from first principles; what's the goal, gap, and the primitives on the critical path?
-2. **Delete and Simplify** — remove anything unnecessary, find the minimum version of what remains, and name the tradeoffs.
-3. **Optimise what remains** — now that redundant steps are gone, design how the surviving pieces interact; list options, tradeoffs, and a ranked set of experiments to try.
+2. **Delete** — remove anything unnecessary. Pure removal. If nothing survives, the problem is gone and you stop here.
+3. **Optimise what remains** — this is where simplification, options, tradeoffs, workflow design, and ranked experiments all live. Take what survived Step 2 and make it as lean, well-designed, and testable as possible.
 4. **Accelerate** — urgency is the point. Run the top experiment end-to-end as fast as possible (the skill can build and test it in a worktree on request). If it fails, **loop back between Steps 2 and 3** until it runs clean.
 5. **Automate** — only after the thing works end-to-end, is as simple as possible, and is optimised.
 
@@ -36,6 +36,7 @@ The five steps:
 - **Restate answers back.** After each question, echo the answer in one line so the user can correct a misread before the next question.
 - **Keep every prompt crisp.** The Q descriptions below are reference material for you — when you actually fire `AskUserQuestion`, the user-facing text should be one short sentence plus the options. Don't paste rationale, examples, or framing into the prompt. The user should feel like they're in a fast conversation, not filling out a 20-question form.
 - **Hard rule — every question is an `AskUserQuestion` with options. No pure free-text prompts, ever.** The final option is always **"Other — I'll describe"**, which on selection invites a plain-text reply in the next turn. Zero exceptions: goals, gaps, primitives, delete candidates, workflow shapes, tradeoffs, experiments — all of them get 3–4 candidate picks plus the Other escape. If the answer space is genuinely open, *you* generate the candidates from the context the user has already given you (invocation text, prior Q answers, files in the repo). Pure free-text means the user stares at a wall of prose and has to type — that's too much cognitive load when 3 clicks plus an escape hatch work better. If you truly cannot propose candidates, ask one narrow clarifying question that itself has options (e.g. "Is this about [domain A], [domain B], or [domain C]?") — don't fall back to a blank prompt.
+- **Always make the first option your recommendation.** Every `AskUserQuestion` must order candidates so that the one *you* would pick — based on Step 1 goal, primitives, and prior answers — is option **A**, and the label reads like "A. **(recommended)** …". The user accepts with one click, scans the alternatives, or picks "Other". Never show a neutral list where the user has to infer your view — being opinionated up front is what makes the skill fast. The rule applies even when the user ultimately disagrees; the goal is to surface your judgment so they can react to it, not to hide behind balance.
 
 ---
 
@@ -99,15 +100,15 @@ Branch:
 
 ---
 
-## Step 2 — Delete and Simplify
+## Step 2 — Delete
 
-Delete anything unnecessary, find the smallest version of what remains, and name the tradeoffs *now* — not later. Tradeoffs surface here so Step 3 has something concrete to optimise against.
+Pure removal. Nothing else. If the right thing to delete makes the problem disappear entirely, you stop here — no Step 3, no build, no ship. Simplification, tradeoffs, workflow design, and experiments all live in Step 3, not here.
 
 **Anchor:** the primitives named in Q1.3 are load-bearing. Never delete them. Everything composed *on top of* primitives is a candidate.
 
 ### Q2.1 — What existing thing, if removed, would make this problem disappear?
 
-Push for aggressive candidates. `AskUserQuestion` with 3–4 concrete delete candidates you've inferred from the repo / prior answers (the bigger and more load-bearing, the better), plus **"Other — I'll describe"**. Categories to draw candidates from:
+Push for aggressive candidates. `AskUserQuestion` with 3–4 concrete delete candidates you've inferred from the repo / prior answers (the bigger and more load-bearing, the better), plus **"Other — I'll describe"**. Categories to draw from:
 
 - A fallback, a legacy code path, an auto-detection routine
 - A config option nobody uses, a feature flag that's permanently on/off
@@ -124,8 +125,8 @@ Push for aggressive candidates. `AskUserQuestion` with 3–4 concrete delete can
 
 Branch:
 - **A / B** → ask Q2.3
-- **C** → skip to Q2.4 (nothing to delete; move straight to simplification)
-- **D** → push back once: "Re-read your Q1.3 list — anything composed *on top of* those primitives is a candidate." Ask Q2.1 again. If still D → skip to Q2.4.
+- **C** → proceed to Step 3 with the full-size request; nothing deletable found
+- **D** → push back once: "Re-read your Q1.3 list — anything composed *on top of* those primitives is a candidate." Ask Q2.1 again. If still D → proceed to Step 3 with the full-size request.
 
 ### Q2.3 — Does the delete candidate break any primitive from Q1.3?
 
@@ -135,11 +136,25 @@ Branch:
 - **C.** Yes — deleting it removes something in Q1.3
 
 Branch:
-- **A** → safe delete. If A from Q2.2 → Verdict: **Delete, don't add.** Skip to Conclusion. Otherwise continue to Q2.4.
-- **B** → accept the delete but flag it. Continue to Q2.4.
+- **A** → safe delete. If Q2.2 = A → **Verdict: Delete, don't add.** Skip to Conclusion — Step 3+ do not run. Otherwise apply the delete and proceed to Step 3 with what survives.
+- **B** → accept the delete but flag it. Apply the delete and proceed to Step 3 with what survives.
 - **C** → reject. Loop back to Q2.1 and find a different candidate. Never delete a primitive.
 
-### Q2.4 — What's the simplest version of what remains?
+End of Step 2. Either the problem is gone (skip to Conclusion) or you have a smaller-scoped request to take into Step 3.
+
+---
+
+## Step 3 — Optimise what remains
+
+Step 2 pruned the tree. Step 3 takes what survived and makes it **lean, well-designed, and testable**. Three phases, six questions total:
+
+- **Make it lean** (Q3.1 simplest version → Q3.2 tradeoffs → Q3.3 scope cuts)
+- **Design how it fits together** (Q3.4 interactions → Q3.5 workflow variants)
+- **Make it testable** (Q3.6 rank as experiments)
+
+Skip Step 3 entirely if the surviving request is a one-liner (one config flip, one tiny function) with no real tradeoffs or interactions — there's nothing to optimise.
+
+### Q3.1 — What's the simplest version of what remains?
 
 `AskUserQuestion`:
 - **A.** One config line / env var / flag flip
@@ -149,11 +164,11 @@ Branch:
 - **E.** Not sure yet
 
 Branch:
-- **A / B** → minimal scope. Continue to Q2.5 only if there are obvious tradeoffs; otherwise skip Step 3 entirely.
-- **C / D** → continue to Q2.5 — scope needs pressure.
+- **A / B** → minimal scope. Continue to Q3.2 only if there are obvious tradeoffs; otherwise skip to Step 4.
+- **C / D** → continue to Q3.2 — scope needs pressure.
 - **E** → ask the user to sketch for 5 minutes, then retry.
 
-### Q2.5 — What tradeoffs are on the table?
+### Q3.2 — What tradeoffs are on the table?
 
 `AskUserQuestion` with 2–4 concrete tradeoffs *you've generated* from the current design, each naming what gets shrunk or what character changes. Plus **"Other — I'll describe"**. Axes to draw from:
 - Handle one case vs both
@@ -162,27 +177,17 @@ Branch:
 - Error message vs silent fallback
 - Fewer primitives supported vs more
 
-### Q2.6 — What are you NOT going to do?
+### Q3.3 — What are you NOT going to do?
 
-`AskUserQuestion` with 3–4 concrete cut candidates you've drawn from the answers to Q2.4/Q2.5 — things visibly in scope that could be dropped. Plus **"Other — I'll describe"**. If the user picks nothing meaningful to cut, scope is still too big — loop back to Q2.4.
+`AskUserQuestion` with 3–4 concrete cut candidates you've drawn from the answers to Q3.1/Q3.2 — things visibly in scope that could be dropped. Plus **"Other — I'll describe"**. If the user picks nothing meaningful to cut, scope is still too big — loop back to Q3.1.
 
-End of Step 2. If Q2.4 = A/B and Q2.5 surfaced no meaningful tradeoffs, go straight to Conclusion — there's nothing to optimise.
-
----
-
-## Step 3 — Optimise what remains
-
-Step 2 removed redundancy. Step 3 asks: **given what's left, how should the surviving pieces interact?** What's the optimal workflow? What are the handoffs between parts (functions, services, humans)? You're not picking a single answer — you're generating options, naming their tradeoffs, and producing a ranked list of experiments to test.
-
-Skip Step 3 entirely if Step 2 ended with a single atomic change (one config line, one small function) — there are no interactions to design.
-
-### Q3.1 — How do the remaining pieces need to interact?
+### Q3.4 — How do the remaining pieces need to interact?
 
 `AskUserQuestion` with 3–4 candidate flow descriptions you've generated from the surviving pieces — each a short sentence saying who calls whom, where humans are in the loop, where async boundaries are, where state lives. Plus **"Other — I'll describe"**.
 
-### Q3.2 — What are the options and tradeoffs for that interaction?
+### Q3.5 — What are the options and tradeoffs for that interaction?
 
-Generate 2–4 **alternative workflow variants** (based on Q3.1) — these are competing ways to do the same thing, not sub-questions of one approach. For every option, **explicitly tag it (a) "works now, even if brittle" or (b) "more robust long-term but higher initial effort"** — this works-now-vs-long-term axis is the key tension Step 4 will act on. Emit as an `AskUserQuestion` with each variant as a pick, plus an "Other — I'll describe a different approach" escape.
+Generate 2–4 **alternative workflow variants** (based on Q3.4) — these are competing ways to do the same thing, not sub-questions of one approach. For every option, **explicitly tag it (a) "works now, even if brittle" or (b) "more robust long-term but higher initial effort"** — this works-now-vs-long-term axis is the key tension Step 4 will act on. Emit as an `AskUserQuestion` with each variant as a pick, plus an "Other — I'll describe a different approach" escape.
 
 **Surface sub-questions, don't swallow them.** If after the main variant pick you have meaningful implementation choices (filename format, embed syntax, folder location, etc.), list them for the user with a recommended default for each — but do not skip them on their behalf. The user decides which deserve attention; your job is to make the choice visible and tag your default so they can accept-or-flip quickly.
 
@@ -194,7 +199,7 @@ Common axes if you need to generate genuine variants:
 - Tight coupling vs explicit contract
 - Single shared store vs per-component state
 
-### Q3.3 — Rank them as experiments to try
+### Q3.6 — Rank them as experiments to try
 
 Produce a ranked list (2–4 items, most-promising first) as a written draft, then fire an `AskUserQuestion` with the ranking choices as picks ("**Go with #1**", "**Swap #1 and #2**", "**Drop #N**", etc.) plus **"Other — I'll re-rank"**. Each entry in the written draft should be:
 - **Name:** short label for the variant
@@ -203,7 +208,7 @@ Produce a ranked list (2–4 items, most-promising first) as a written draft, th
 - **Signal:** what result would invalidate it
 - **Mode:** "works-now (brittle)" OR "long-term robust" — which tradeoff this experiment buys
 
-End of Step 3 with: (a) a concrete picture of the surviving workflow, (b) a ranked experiment list, and (c) each experiment tagged with its works-now-vs-long-term mode. Step 4 acts on the top-ranked experiment — pick brittle-but-fast when you need to learn, robust when the cost of rework is higher than the cost of delay.
+End of Step 3 with: (a) the simplest surviving scope, (b) explicit cuts the user accepted, (c) a concrete workflow picture, (d) a ranked experiment list tagged with works-now-vs-long-term mode. Step 4 acts on the top-ranked experiment — pick brittle-but-fast when you need to learn, robust when the cost of rework is higher than the cost of delay.
 
 ---
 
@@ -224,20 +229,20 @@ Accelerate here means **get the thing running through the full flow with no fail
 
 Branch:
 - **A** → proceed to the auto-build flow below, then apply Q4.1 to the result
-- **B** → emit one concrete paragraph naming exactly what to change (files, lines, config keys), citing the Q1.3 primitives, the Q3.3 hypothesis, and the Q2.6 cut-scope. Then wait at Q4.1.
+- **B** → emit one concrete paragraph naming exactly what to change (files, lines, config keys), citing the Q1.3 primitives, the Q3.6 hypothesis, and the Q3.3 cut-scope. Then wait at Q4.1.
 - **C** → loop back to Step 3. Don't ship an experiment the user isn't confident in.
 
 **Auto-build flow (Q4.0 = A):**
 1. Create an isolated workspace. Prefer `git worktree add ../worktrees/accel-<slug>` where `<slug>` is a short kebab-case version of the experiment name; fall back to a branch `accel-<slug>` if worktrees aren't available. Tell the user which you chose.
-2. Implement ONLY the minimal change from Q2.4. Do not scaffold, do not add tests beyond what E2E needs, do not pre-build for the losing experiments. If you find yourself writing setup code beyond the change, stop and ask.
-3. Commit with a message that references: the primitives from Q1.3, the tradeoff mode from Q3.3 (works-now vs long-term), and the hypothesis the experiment is testing.
+2. Implement ONLY the minimal change from Q3.1. Do not scaffold, do not add tests beyond what E2E needs, do not pre-build for the losing experiments. If you find yourself writing setup code beyond the change, stop and ask.
+3. Commit with a message that references: the primitives from Q1.3, the tradeoff mode from Q3.6 (works-now vs long-term), and the hypothesis the experiment is testing.
 4. Run the full E2E flow — test suite, manual run, or integration test as appropriate for the codebase.
 5. Surface pass/fail and relevant logs/artifacts immediately.
 6. If the run fails, ask whether to delete the branch/worktree before looping back to Step 2↔3.
 
 **Guardrails that MUST hold in branch A:**
 - Explicit user consent was captured via Q4.0 = A — do not infer consent from anything else.
-- Scope is limited to the minimal change from Q2.4. Enforce this hard — rework-creep kills the urgency that makes this step work.
+- Scope is limited to the minimal change from Q3.1. Enforce this hard — rework-creep kills the urgency that makes this step work.
 - Never push the branch, open a PR, or deploy without a separate user confirmation. Auto-build is for local verification, not shipping.
 - If the experiment fails, the default offer is to delete the branch and loop back — do not polish a failing approach.
 
@@ -261,7 +266,7 @@ Branch:
 **Hard rule:** the skill NEVER self-declares pass. The confirmation must come from the user's own observation of the final outcome described in Q1.1. "Tests passed" emitted by Claude is not a pass. Telemetry is not a pass. Only the user's eyes on the goal = pass.
 
 Common failure modes that trigger the 2↔3 loop:
-- A component turned out to need more than its simplest form → Q2.4 was too aggressive, pick differently
+- A component turned out to need more than its simplest form → Q3.1 was too aggressive, pick differently
 - A primitive was missing from Q1.3 → loop all the way back to Step 1
 - The top experiment's hypothesis broke → drop it, re-rank, try the next-most-promising handoff from Q3.3
 - The design works but is too brittle → Step 2 to cut scope, Step 3 to re-generate workflow options
@@ -274,7 +279,7 @@ Common failure modes that trigger the 2↔3 loop:
 Three-gate hard-enforcement: automate ONLY if **all three** are true in this conversation:
 
 1. The thing works end-to-end (Q4.1 = A)
-2. It's as simple as possible (Step 2 ran; Q2.4 chosen and Q2.6 named a cut)
+2. It's as simple as possible (Step 2 ran; Q3.1 chosen and Q3.3 named a cut)
 3. It's optimised (Step 3 ran, OR skipped intentionally because there were no real tradeoffs)
 
 If ANY of the three is unchecked → refuse and loop back to the failing gate.
@@ -333,7 +338,7 @@ Trigger when the user pastes ≥3 feedback points at once.
 | Pattern in their answer | Flag |
 |---|---|
 | "Just in case…" / "for future flexibility" | "No one has asked for this yet — Step 1 verdict should be *Record*, not *Do*." |
-| "We need to auto-detect…" | "One config line almost always beats detection. Revisit Q2.4." |
+| "We need to auto-detect…" | "One config line almost always beats detection. Revisit Q3.1." |
 | "Let's automate this" (before Steps 1–4) | "Automate is Step 5. What are the primitives? Has it run end-to-end?" |
 | "Add a review/approval step…" | "Reacting to one incident with permanent process. Re-check Q1.5 frequency." |
 | "Hire a new role to handle X…" | "Can the work be simplified in Step 2 so it doesn't need a role?" |
