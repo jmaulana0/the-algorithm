@@ -38,6 +38,7 @@ The five steps:
 - **Hard rule — every question is an `AskUserQuestion` with options. No pure free-text prompts, ever.** The final option is always **"Other — I'll describe"**, which on selection invites a plain-text reply in the next turn. Zero exceptions: goals, gaps, primitives, delete candidates, workflow shapes, tradeoffs, experiments — all of them get 3–4 candidate picks plus the Other escape. If the answer space is genuinely open, *you* generate the candidates from the context the user has already given you (invocation text, prior Q answers, files in the repo). Pure free-text means the user stares at a wall of prose and has to type — that's too much cognitive load when 3 clicks plus an escape hatch work better. If you truly cannot propose candidates, ask one narrow clarifying question that itself has options (e.g. "Is this about [domain A], [domain B], or [domain C]?") — don't fall back to a blank prompt.
 - **Always make the first option your recommendation.** Every `AskUserQuestion` must order candidates so that the one *you* would pick — based on Step 1 goal, primitives, and prior answers — is option **A**, and the label reads like "A. **(recommended)** …". The user accepts with one click, scans the alternatives, or picks "Other". Never show a neutral list where the user has to infer your view — being opinionated up front is what makes the skill fast. The rule applies even when the user ultimately disagrees; the goal is to surface your judgment so they can react to it, not to hide behind balance.
 - **Skip obvious answers in Steps 2–4.** When a question in Step 2, 3, or 4 has a single clearly correct answer — one obvious delete cluster with no real competitors, one obvious simplest version, one obvious way to verify E2E — do NOT fire the `AskUserQuestion`. State the answer as an assumption inline and proceed: *"**Assuming Q3.1 = A. One config line** (`useNotion` flag flip). Proceeding unless you stop me."* The user can interrupt at any time; this just saves click-fatigue on non-decisions. The bar for skipping is high: *no meaningful alternatives exist*. If there are two plausible answers, always ask. **Step 1 never auto-advances** — the thinking layer always fires; that's where the skill's value lives. Steps 2–4 are for executing on Step 1's thinking, and executing should be fast when the path is clear.
+- **Complete the work when you can — do not hand it back.** Once Steps 1–3 have produced a clear goal, primitive list, delete cluster, and chosen experiment, the default behaviour in Step 4 is *you build it*. Do not ask the user to implement the change themselves unless (a) the tools available to this session genuinely cannot make the edit (e.g. no write access, no shell, no browser for the specific surface), or (b) the user has explicitly asked to drive manually. "I could build it but asking is safer" is not a reason — it's friction. If Steps 1–3 left ambiguity that makes it impossible to execute without further decisions, loop back to Step 3 and resolve the ambiguity; do not push the execution onto the user as a workaround for your own uncertainty. The skill exists to produce an outcome, not a shopping list.
 
 ---
 
@@ -225,19 +226,25 @@ Hard-gated: Steps 1–3 must have user-confirmed answers in this conversation.
 
 Accelerate here means **get the thing running through the full flow with no failures.** Not a perf benchmark — an integration test against reality. Musk's version runs the full production line; yours runs the full flow.
 
-### Q4.0 — How should we accelerate the top experiment?
+### Q4.0 — Proceed to build? (default: yes, skip the ask)
 
-`AskUserQuestion`:
-- **A.** Build it now — create a worktree/branch, implement the minimal change, run E2E, report result
-- **B.** I'll build it manually — give me the exact minimal change to make, then I'll come back with the result
-- **C.** Not ready — I need to adjust the experiment first
+**Default behaviour: skip this question entirely and go straight to the auto-build flow below.** By the time you reach Step 4, Steps 1–3 have produced a clear goal, primitives list, delete cluster, chosen experiment, and hypothesis. You already have everything you need — executing is your job. Per the "Complete the work when you can" operating rule, ask Q4.0 only when one of these is genuinely true:
 
-Branch:
-- **A** → proceed to the auto-build flow below, then apply Q4.1 to the result
-- **B** → emit one concrete paragraph naming exactly what to change (files, lines, config keys), citing the Q1.3 primitives, the Q3.6 hypothesis, and the Q3.3 cut-scope. Then wait at Q4.1.
+- The session **cannot** make the required edits (no write access to the target system, required credentials not available, the work lives in a surface this skill can't reach)
+- The user has **explicitly** asked to drive manually this run
+- You hit real ambiguity in Steps 1–3 that makes execution impossible without another decision — in which case loop back to Step 3 to resolve, don't push the execution onto the user
+
+If you must ask, `AskUserQuestion`:
+- **A. (recommended)** Build it now — create a worktree/branch, implement the minimal change, run E2E, report result
+- **B.** I'll build it manually — give me the exact minimal change to make
+- **C.** Not ready — loop back to Step 3
+
+Branches:
+- **A** (and the default, unasked path) → proceed to the auto-build flow below, then apply Q4.1
+- **B** → emit one concrete paragraph naming exactly what to change (files, lines, config keys), citing the Q1.3 primitives, the Q3.6 hypothesis, and the Q3.3 cut-scope. Wait at Q4.1.
 - **C** → loop back to Step 3. Don't ship an experiment the user isn't confident in.
 
-**Auto-build flow (Q4.0 = A):**
+**Auto-build flow (default path, or Q4.0 = A if asked):**
 1. Create an isolated workspace. Prefer `git worktree add ../worktrees/accel-<slug>` where `<slug>` is a short kebab-case version of the experiment name; fall back to a branch `accel-<slug>` if worktrees aren't available. Tell the user which you chose.
 2. Implement ONLY the minimal change from Q3.1. Do not scaffold, do not add tests beyond what E2E needs, do not pre-build for the losing experiments. If you find yourself writing setup code beyond the change, stop and ask.
 3. Commit with a message that references: the primitives from Q1.3, the tradeoff mode from Q3.6 (works-now vs long-term), and the hypothesis the experiment is testing.
