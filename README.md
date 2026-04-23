@@ -21,7 +21,7 @@ Designed for Claude Code, works with any agent that supports interactive multi-c
 ### Claude Code — one command
 
 ```bash
-npx github:jmaulana0/the-algorithm
+curl -fsSL https://raw.githubusercontent.com/jmaulana0/the-algorithm/main/install.sh | bash
 ```
 
 That's it. Installs `SKILL.md` into `~/.claude/skills/the-algorithm/`. Claude Code picks it up automatically on decision-shaped prompts, or invoke it explicitly:
@@ -30,21 +30,25 @@ That's it. Installs `SKILL.md` into `~/.claude/skills/the-algorithm/`. Claude Co
 /the-algorithm
 ```
 
-### Alternatives
+### Node users
 
-**If this skill ever gets published to npm**, the command collapses further:
+If you prefer a Node-native installer:
+
+```bash
+# install globally, run once
+npm install -g github:jmaulana0/the-algorithm && the-algorithm
+
+# or one-shot via npm exec (npx form was changed in npm 11)
+npm exec --yes --package=github:jmaulana0/the-algorithm -- the-algorithm
+```
+
+Once this is published to npm as a package, the command collapses to:
 
 ```bash
 npx the-algorithm
 ```
 
-**Prefer curl?**
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/jmaulana0/the-algorithm/main/install.sh | bash
-```
-
-**Prefer a manual clone?**
+### Manual clone
 
 ```bash
 git clone https://github.com/jmaulana0/the-algorithm.git
@@ -52,7 +56,7 @@ cd the-algorithm
 ./install.sh
 ```
 
-All four paths install the same file to the same place. Override the install location with `THE_ALGORITHM_DEST=/some/path`.
+All paths install the same file to the same place. Override the install location with `THE_ALGORITHM_DEST=/some/path`.
 
 ### Other agents (Cursor, Windsurf, Cline, Codex, etc.)
 
