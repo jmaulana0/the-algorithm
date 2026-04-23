@@ -24,13 +24,33 @@ Designed for Claude Code, works with any agent that supports interactive multi-c
 npx the-algorithm
 ```
 
-That's it. Installs `SKILL.md` into `~/.claude/skills/the-algorithm/`. Claude Code picks it up automatically on decision-shaped prompts, or invoke it explicitly:
+That's it. This:
+
+1. Installs `SKILL.md` into `~/.claude/skills/the-algorithm/`
+2. Adds a **Claude Code `SessionStart` hook** that silently refreshes the skill from npm at the start of every future session — so updates flow automatically without you ever re-running the installer.
+
+Claude Code picks up the skill on decision-shaped prompts, or invoke it explicitly:
 
 ```
 /the-algorithm
 ```
 
 [![npm version](https://img.shields.io/npm/v/the-algorithm.svg?color=cb3837&logo=npm&logoColor=white)](https://www.npmjs.com/package/the-algorithm)
+
+### Auto-upgrade
+
+By default the installer wires a `SessionStart` hook that runs `npx --yes the-algorithm@latest --quiet --no-hook` in the background at every new Claude Code session. The backgrounded `&` means it never slows session startup; the next session serves the newest `SKILL.md`.
+
+Flags:
+
+```bash
+npx the-algorithm                    # install skill + add auto-upgrade hook (default)
+npx the-algorithm --no-hook          # install skill only; no hook
+npx the-algorithm --uninstall-hook   # remove the hook (skill stays)
+npx the-algorithm --uninstall        # remove skill and hook
+```
+
+The hook is idempotent — re-running `npx the-algorithm` won't duplicate it.
 
 ### Alternatives
 

@@ -1,6 +1,6 @@
 {
   "name": "the-algorithm",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Interactive decision framework for AI coding agents, adapted from Elon Musk's five-step production method. Walks you through one discrete question at a time to find the real bottleneck, reason from first principles, and commit to the simplest reliable approach.",
   "bin": {
     "the-algorithm": "bin/cli.js"

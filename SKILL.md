@@ -185,7 +185,7 @@ Free-text. Describe the flow: what runs first, what hands off to what, where hum
 
 Generate 2–4 **alternative workflow variants** (based on Q3.1) — these are competing ways to do the same thing, not sub-questions of one approach. For every option, **explicitly tag it (a) "works now, even if brittle" or (b) "more robust long-term but higher initial effort"** — this works-now-vs-long-term axis is the key tension Step 4 will act on. Emit as an `AskUserQuestion` with each variant as a pick, plus an "Other — I'll describe a different approach" escape.
 
-**Hypothesis filter — apply before surfacing any tradeoff.** Every variant in Q3.2 must change what Step 4 will actually *learn*. If you're about to ask a sub-question inside an already-chosen option — filename format, syntax variants, folder naming, logging verbosity — **default it silently** and keep moving. Those are implementation details, not experiment tradeoffs. Over-asking optimisation questions is the most common Step 3 failure mode; it burns user attention on decisions that don't affect the outcome. Rule of thumb: *if you can default it and Step 4 would reveal the problem anyway, don't ask.*
+**Surface sub-questions, don't swallow them.** If after the main variant pick you have meaningful implementation choices (filename format, embed syntax, folder location, etc.), list them for the user with a recommended default for each — but do not skip them on their behalf. The user decides which deserve attention; your job is to make the choice visible and tag your default so they can accept-or-flip quickly.
 
 Common axes if you need to generate genuine variants:
 - Sync call vs async queue
