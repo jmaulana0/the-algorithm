@@ -36,6 +36,7 @@ The five steps:
 - **Never answer for the user.** If you find yourself guessing, stop and ask.
 - **Restate answers back.** After each question, echo the answer in one line so the user can correct a misread before the next question.
 - **Keep every prompt crisp.** The Q descriptions below are reference material for you — when you actually fire `AskUserQuestion`, the user-facing text should be one short sentence plus the options. Don't paste rationale, examples, or framing into the prompt. The user should feel like they're in a fast conversation, not filling out a 20-question form.
+- **Structured pick + free-text escape.** Whenever you can name 2–4 concrete candidates for a question — even if its spec says "free-text" — fire `AskUserQuestion` with those candidates as options, plus a final "Other — I'll describe it" option. On the "Other" branch, invite a free-text reply in the normal chat. Plain prose with bullet points forces the user to type everything and loses the one-click pick UX. Rule of thumb: if you find yourself writing *"- A. … - B. … - C. … - D. Something else"* in prose, stop and re-emit as `AskUserQuestion`.
 
 ---
 
@@ -107,7 +108,8 @@ Delete anything unnecessary, find the smallest version of what remains, and name
 
 ### Q2.1 — What existing thing, if removed, would make this problem disappear?
 
-Free-text. Push for aggressive candidates. Prompts if stuck:
+Push for aggressive candidates. If you have enough context to name 2–4 concrete delete candidates yourself, fire `AskUserQuestion` with them as options plus an "Other — I'll describe it" escape (per the Structured-pick operating rule). Otherwise ask free-text with these category prompts if the user is stuck:
+
 - A fallback, a legacy code path, an auto-detection routine
 - A config option nobody uses, a feature flag that's permanently on/off
 - A process step, a meeting, an approval gate
@@ -181,7 +183,7 @@ Free-text. Describe the flow: what runs first, what hands off to what, where hum
 
 ### Q3.2 — What are the options and tradeoffs for that interaction?
 
-Free-text. List 2–4 workflow/handoff variants, each with the tradeoff it captures. For every option, **explicitly call out whether it prioritises (a) "works now, even if brittle" or (b) "more robust long-term but higher initial effort"** — this works-now-vs-long-term axis is the key tension Step 4 will act on. Common axes to prompt the user with if they stall:
+Generate 2–4 workflow/handoff variants yourself (based on Q3.1). For every option, **explicitly tag it (a) "works now, even if brittle" or (b) "more robust long-term but higher initial effort"** — this works-now-vs-long-term axis is the key tension Step 4 will act on. Emit them as an `AskUserQuestion` with each variant as a pick, plus an "Other — I'll describe a different approach" escape (per the Structured-pick operating rule). Common axes to prompt the user with if you need to generate them yourself:
 - Sync call vs async queue
 - Eager computation vs lazy-on-demand
 - Centralised service vs distributed responsibility
