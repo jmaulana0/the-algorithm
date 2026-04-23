@@ -1,0 +1,36 @@
+{
+  "name": "the-algorithm",
+  "version": "1.0.0",
+  "description": "Interactive decision framework for AI coding agents, adapted from Elon Musk's five-step production method. Walks you through one discrete question at a time to find the real bottleneck, reason from first principles, and commit to the simplest reliable approach.",
+  "bin": {
+    "the-algorithm": "./bin/cli.js"
+  },
+  "files": [
+    "SKILL.md",
+    "bin/",
+    "install.sh"
+  ],
+  "keywords": [
+    "claude-code",
+    "claude",
+    "skill",
+    "elon-musk",
+    "five-step-method",
+    "decision-framework",
+    "first-principles",
+    "ai-agent"
+  ],
+  "homepage": "https://github.com/jmaulana0/the-algorithm",
+  "bugs": {
+    "url": "https://github.com/jmaulana0/the-algorithm/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jmaulana0/the-algorithm.git"
+  },
+  "author": "James Maulana",
+  "license": "MIT",
+  "engines": {
+    "node": ">=14"
+  }
+}

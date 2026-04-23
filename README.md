@@ -18,9 +18,33 @@ Designed for Claude Code, works with any agent that supports interactive multi-c
 
 ## Install
 
-### Claude Code
+### Claude Code — one command
 
-Clone and run the install script:
+```bash
+npx github:jmaulana0/the-algorithm
+```
+
+That's it. Installs `SKILL.md` into `~/.claude/skills/the-algorithm/`. Claude Code picks it up automatically on decision-shaped prompts, or invoke it explicitly:
+
+```
+/the-algorithm
+```
+
+### Alternatives
+
+**If this skill ever gets published to npm**, the command collapses further:
+
+```bash
+npx the-algorithm
+```
+
+**Prefer curl?**
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/jmaulana0/the-algorithm/main/install.sh | bash
+```
+
+**Prefer a manual clone?**
 
 ```bash
 git clone https://github.com/jmaulana0/the-algorithm.git
@@ -28,17 +52,7 @@ cd the-algorithm
 ./install.sh
 ```
 
-Or one-line via curl:
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/jmaulana0/the-algorithm/main/install.sh | bash
-```
-
-Both install `SKILL.md` into `~/.claude/skills/the-algorithm/`. Claude Code will auto-trigger the skill on decision-shaped prompts, or you can invoke it explicitly:
-
-```
-/the-algorithm
-```
+All four paths install the same file to the same place. Override the install location with `THE_ALGORITHM_DEST=/some/path`.
 
 ### Other agents (Cursor, Windsurf, Cline, Codex, etc.)
 
