@@ -95,6 +95,19 @@ See [`SKILL.md`](SKILL.md) for the full spec.
 
 Based on Elon Musk's five-step method (described publicly in 2021 Starbase tours with Everyday Astronaut). Interactive adaptation and skill format iterated in conversation with Claude Code.
 
+## Maintainer notes
+
+Shipping updates to the npm package is handled by the **`publish-the-algorithm`** Claude Code skill, included in this repo under [`.claude/skills/publish-the-algorithm/`](.claude/skills/publish-the-algorithm/SKILL.md). It walks through version bump, 2FA-gated `npm publish`, tag push, and post-release verification. The skill lives in the repo so the process is reproducible on any machine with a clone.
+
+```bash
+# from the repo root:
+cp -r .claude/skills/publish-the-algorithm ~/.claude/skills/
+# then in Claude Code:
+/publish-the-algorithm
+```
+
+The skill file is excluded from npm releases via the `files` whitelist in `package.json` — end users never see it.
+
 ## License
 
 [MIT](LICENSE)
