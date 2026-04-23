@@ -242,23 +242,31 @@ Branch:
 - Never push the branch, open a PR, or deploy without a separate user confirmation. Auto-build is for local verification, not shipping.
 - If the experiment fails, the default offer is to delete the branch and loop back — do not polish a failing approach.
 
-### Q4.1 — What was the E2E result?
+### Q4.1 — Did every Q1.3 primitive get exercised AND did the user confirm the final outcome with their own eyes?
 
-`AskUserQuestion`:
-- **A.** Yes — flawless E2E run
-- **B.** Yes — but failures or errors along the way
-- **C.** Not yet — return when there's a result
+**E2E does NOT mean "the code I shipped ran."** It means every primitive from Q1.3 was traversed end-to-end *and* the final user-observable outcome (the goal stated in Q1.1) is confirmed by the user directly. Intermediate signals — webhook fired, CI green, commit landed, test passed, API returned 200 — are necessary but not sufficient. A pre-existing broken hop downstream of your change still fails Step 4; ownership extends to the whole chain, not just the segment you modified.
+
+**Before firing the AskUserQuestion**, print a verification checklist back to the user: one row per Q1.3 primitive, with "Verified how?" filled in for each. A primitive is only ticked if there is explicit evidence it ran *in this run* — never inferred from upstream success, never "should be fine", never "worked yesterday". If any row reads "assumed" or "not checked" — stop and go verify it (or ask the user to) before firing Q4.1.
+
+Only once the checklist is complete, fire `AskUserQuestion`:
+
+- **A.** Yes — every primitive ticked with direct evidence, AND I confirmed the final outcome with my own eyes
+- **B.** Some segments passed but the final outcome isn't observable yet / a hop broke / a primitive wasn't verified
+- **C.** Not yet — haven't run the full flow
 
 Branch:
 - **A** → proceed to Step 5
-- **B** → **LOOP BACK between Steps 2 and 3.** Delete what broke, simplify what's overly complex, then regenerate or re-rank the experiment list based on what reality just revealed. Do not proceed to Step 5 — fix what's broken first. If the top experiment invalidated cleanly, try the next-ranked one.
+- **B** → **LOOP BACK between Steps 2 and 3.** A broken hop IS the experiment's result — do not paper over it. Even if the break is pre-existing or downstream of the change you made, it still fails E2E. Delete/simplify what's blocking the chain, re-optimise, re-run. If the top experiment's hypothesis invalidated cleanly, try the next-ranked one.
 - **C** → stop. Run it. Return with the result.
+
+**Hard rule:** the skill NEVER self-declares pass. The confirmation must come from the user's own observation of the final outcome described in Q1.1. "Tests passed" emitted by Claude is not a pass. Telemetry is not a pass. Only the user's eyes on the goal = pass.
 
 Common failure modes that trigger the 2↔3 loop:
 - A component turned out to need more than its simplest form → Q2.4 was too aggressive, pick differently
 - A primitive was missing from Q1.3 → loop all the way back to Step 1
 - The top experiment's hypothesis broke → drop it, re-rank, try the next-most-promising handoff from Q3.3
 - The design works but is too brittle → Step 2 to cut scope, Step 3 to re-generate workflow options
+- **A downstream hop you didn't build was already broken** → fix or route around it; your E2E isn't done until the chain runs clean from capture to user-observed outcome
 
 ---
 
