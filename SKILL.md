@@ -115,6 +115,10 @@ Push for aggressive candidates. `AskUserQuestion` with 3–4 concrete delete can
 - A process step, a meeting, an approval gate
 - A vendor or tool used for one corner case
 
+**Frame each candidate as a cluster, not a single line.** A delete candidate is *one root thing plus everything that becomes dead code because of it* — the files, branches, env vars, commits that only exist to support the root. Name the dependents inline so the user sees the full scope of what a pick actually removes. Example: "Delete Notion entirely (`lib/notion.ts`, `lib/upload.ts`, the `useNotion` branch in `api/webhook.ts`, `NOTION_*` env vars)" — one pick, whole cluster.
+
+**One cluster per Step 2 pass.** Aggressive *within* a cluster, conservative *across* clusters — otherwise if the delete causes a problem you can't tell which piece broke things. If the first delete doesn't remove the whole problem, a second cluster delete happens in the *next* Step 2 pass, triggered by the 2↔3 loop after Step 4 validates the first one. Never propose multi-cluster deletes in the same question.
+
 ### Q2.2 — If you delete that thing, does the original problem still need solving?
 
 `AskUserQuestion`:
