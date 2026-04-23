@@ -21,7 +21,7 @@ Designed for Claude Code, works with any agent that supports interactive multi-c
 ### Claude Code — one command
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/jmaulana0/the-algorithm/main/install.sh | bash
+npx the-algorithm
 ```
 
 That's it. Installs `SKILL.md` into `~/.claude/skills/the-algorithm/`. Claude Code picks it up automatically on decision-shaped prompts, or invoke it explicitly:
@@ -30,25 +30,17 @@ That's it. Installs `SKILL.md` into `~/.claude/skills/the-algorithm/`. Claude Co
 /the-algorithm
 ```
 
-### Node users
+[![npm version](https://img.shields.io/npm/v/the-algorithm.svg?color=cb3837&logo=npm&logoColor=white)](https://www.npmjs.com/package/the-algorithm)
 
-If you prefer a Node-native installer:
+### Alternatives
 
-```bash
-# install globally, run once
-npm install -g github:jmaulana0/the-algorithm && the-algorithm
-
-# or one-shot via npm exec (npx form was changed in npm 11)
-npm exec --yes --package=github:jmaulana0/the-algorithm -- the-algorithm
-```
-
-Once this is published to npm as a package, the command collapses to:
+**No Node? Use curl:**
 
 ```bash
-npx the-algorithm
+curl -fsSL https://raw.githubusercontent.com/jmaulana0/the-algorithm/main/install.sh | bash
 ```
 
-### Manual clone
+**Prefer a manual clone:**
 
 ```bash
 git clone https://github.com/jmaulana0/the-algorithm.git
