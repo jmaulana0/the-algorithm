@@ -32,11 +32,10 @@ The five steps:
 - **One question per turn.** Never list all questions up front. Fire one `AskUserQuestion`, read the answer, decide whether to ask the next one or jump ahead.
 - **Branch aggressively.** If Step 1 returns "don't do", don't ask Step 2 or 3.
 - **Loop freely between Steps 2 and 3.** If Step 4 uncovers a failure, go back — don't push through.
-- **Free-text when needed.** Some questions don't have preset options. Ask in plain text — don't force multiple-choice when the answer space is open.
 - **Never answer for the user.** If you find yourself guessing, stop and ask.
 - **Restate answers back.** After each question, echo the answer in one line so the user can correct a misread before the next question.
 - **Keep every prompt crisp.** The Q descriptions below are reference material for you — when you actually fire `AskUserQuestion`, the user-facing text should be one short sentence plus the options. Don't paste rationale, examples, or framing into the prompt. The user should feel like they're in a fast conversation, not filling out a 20-question form.
-- **Structured pick + free-text escape.** Whenever you can name 2–4 concrete candidates for a question — even if its spec says "free-text" — fire `AskUserQuestion` with those candidates as options, plus a final "Other — I'll describe it" option. On the "Other" branch, invite a free-text reply in the normal chat. Plain prose with bullet points forces the user to type everything and loses the one-click pick UX. Rule of thumb: if you find yourself writing *"- A. … - B. … - C. … - D. Something else"* in prose, stop and re-emit as `AskUserQuestion`.
+- **Hard rule — every question is an `AskUserQuestion` with options. No pure free-text prompts, ever.** The final option is always **"Other — I'll describe"**, which on selection invites a plain-text reply in the next turn. Zero exceptions: goals, gaps, primitives, delete candidates, workflow shapes, tradeoffs, experiments — all of them get 3–4 candidate picks plus the Other escape. If the answer space is genuinely open, *you* generate the candidates from the context the user has already given you (invocation text, prior Q answers, files in the repo). Pure free-text means the user stares at a wall of prose and has to type — that's too much cognitive load when 3 clicks plus an escape hatch work better. If you truly cannot propose candidates, ask one narrow clarifying question that itself has options (e.g. "Is this about [domain A], [domain B], or [domain C]?") — don't fall back to a blank prompt.
 
 ---
 
@@ -50,15 +49,15 @@ Run these in sequence. Stop as soon as a "don't do" or "record" verdict triggers
 
 ### Q1.1 — What is the goal?
 
-Free-text. Force a single clear sentence. If the user says "to fix X", push back: "*Fixing X* is a task, not a goal. What does fixing X enable?" Goals describe an end-state, not a task list.
+`AskUserQuestion` with 3–4 candidate goals you've inferred from the user's invocation, each phrased as a one-sentence end-state (not a task). Plus an **"Other — I'll describe"** option. If the user says "to fix X", flag in your candidates that fixing X is a task — and propose what end-states that fix enables.
 
 ### Q1.2 — What is the current state, and what's the gap to the goal?
 
-Free-text. Two sentences: where things are now, and the specific gap between now and the goal. Not "it's broken" — *what exactly is missing or misaligned?*
+`AskUserQuestion` with 3–4 candidate "current state + gap" descriptions you've inferred from the repo / context, each a single sentence pair. Plus **"Other — I'll describe"**.
 
 ### Q1.3 — What primitives sit on the critical path from current state → goal?
 
-Free-text; ask for a short list (3–7 items). The prompt to fire: *"Primitives = the irreducible things on the critical path (data model, network hop, human consent step, etc.). Everything else is composition and can be deleted or re-derived. What are yours?"*
+`AskUserQuestion` offering 3–4 candidate primitive sets (each set is a short list of 3–7 items). The prompt to fire: *"Primitives = the irreducible things on the critical path (data model, network hop, human consent step, etc.). Everything else is composition and can be deleted or re-derived."* Plus **"Other — I'll describe"**.
 
 **Sharpening test — apply silently before accepting the answer.** A primitive must be generic enough that it would appear in *any valid implementation* of the goal, not just the current one. If an item names a specific vendor, tool, file path, repo, API, or library (e.g. "the valis-obsidian-sync GitHub repo", "the Telegram bot token", "the Postgres users table"), it is composition — the *role* that thing plays (transport, capture surface, data store) is the actual primitive.
 
@@ -108,7 +107,7 @@ Delete anything unnecessary, find the smallest version of what remains, and name
 
 ### Q2.1 — What existing thing, if removed, would make this problem disappear?
 
-Push for aggressive candidates. If you have enough context to name 2–4 concrete delete candidates yourself, fire `AskUserQuestion` with them as options plus an "Other — I'll describe it" escape (per the Structured-pick operating rule). Otherwise ask free-text with these category prompts if the user is stuck:
+Push for aggressive candidates. `AskUserQuestion` with 3–4 concrete delete candidates you've inferred from the repo / prior answers (the bigger and more load-bearing, the better), plus **"Other — I'll describe"**. Categories to draw candidates from:
 
 - A fallback, a legacy code path, an auto-detection routine
 - A config option nobody uses, a feature flag that's permanently on/off
@@ -156,7 +155,7 @@ Branch:
 
 ### Q2.5 — What tradeoffs are on the table?
 
-Free-text. List 2–4 tradeoffs you could make to shrink scope further or change character. Examples to prompt if stuck:
+`AskUserQuestion` with 2–4 concrete tradeoffs *you've generated* from the current design, each naming what gets shrunk or what character changes. Plus **"Other — I'll describe"**. Axes to draw from:
 - Handle one case vs both
 - Manual config vs auto-detection
 - Ship as manual-run vs pre-automate
@@ -165,7 +164,7 @@ Free-text. List 2–4 tradeoffs you could make to shrink scope further or change
 
 ### Q2.6 — What are you NOT going to do?
 
-Free-text. Force the user to name at least one thing being cut. If they can't, the scope is still too big — loop back to Q2.4.
+`AskUserQuestion` with 3–4 concrete cut candidates you've drawn from the answers to Q2.4/Q2.5 — things visibly in scope that could be dropped. Plus **"Other — I'll describe"**. If the user picks nothing meaningful to cut, scope is still too big — loop back to Q2.4.
 
 End of Step 2. If Q2.4 = A/B and Q2.5 surfaced no meaningful tradeoffs, go straight to Conclusion — there's nothing to optimise.
 
@@ -179,7 +178,7 @@ Skip Step 3 entirely if Step 2 ended with a single atomic change (one config lin
 
 ### Q3.1 — How do the remaining pieces need to interact?
 
-Free-text. Describe the flow: what runs first, what hands off to what, where humans are in the loop, where async boundaries sit, where state lives. The goal is a concrete picture of *how* the surviving pieces compose, not just *what* they are.
+`AskUserQuestion` with 3–4 candidate flow descriptions you've generated from the surviving pieces — each a short sentence saying who calls whom, where humans are in the loop, where async boundaries are, where state lives. Plus **"Other — I'll describe"**.
 
 ### Q3.2 — What are the options and tradeoffs for that interaction?
 
@@ -197,7 +196,7 @@ Common axes if you need to generate genuine variants:
 
 ### Q3.3 — Rank them as experiments to try
 
-Free-text. Produce a ranked list (2–4 items, most-promising first). Each entry should be:
+Produce a ranked list (2–4 items, most-promising first) as a written draft, then fire an `AskUserQuestion` with the ranking choices as picks ("**Go with #1**", "**Swap #1 and #2**", "**Drop #N**", etc.) plus **"Other — I'll re-rank"**. Each entry in the written draft should be:
 - **Name:** short label for the variant
 - **Hypothesis:** the one thing it assumes will hold true
 - **Cheapest test:** the smallest thing you could run to find out if the hypothesis breaks
