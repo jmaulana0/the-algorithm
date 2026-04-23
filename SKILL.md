@@ -57,7 +57,19 @@ Free-text. Two sentences: where things are now, and the specific gap between now
 
 ### Q1.3 — What primitives sit on the critical path from current state → goal?
 
-Free-text; ask for a short list (3–7 items). The prompt to fire: *"Primitives = the irreducible things on the critical path (data model, network hop, human consent step, etc.). Everything else is composition and can be deleted or re-derived. What are yours?"* These are the things you will NOT delete in Step 2.
+Free-text; ask for a short list (3–7 items). The prompt to fire: *"Primitives = the irreducible things on the critical path (data model, network hop, human consent step, etc.). Everything else is composition and can be deleted or re-derived. What are yours?"*
+
+**Sharpening test — apply silently before accepting the answer.** A primitive must be generic enough that it would appear in *any valid implementation* of the goal, not just the current one. If an item names a specific vendor, tool, file path, repo, API, or library (e.g. "the valis-obsidian-sync GitHub repo", "the Telegram bot token", "the Postgres users table"), it is composition — the *role* that thing plays (transport, capture surface, data store) is the actual primitive.
+
+If the list fails the test, push back **once** with a reframe prompt:
+
+> That sounds like the current implementation. What role does each item play — what would any working version of the goal still need? Name the role, not the tool.
+
+Then accept the corrected list.
+
+**Why this matters.** Anchoring on "GitHub repo + sync script" as primitives locks Step 2 into tweaking them. Anchoring on "phone→Mac transport" opens up "skip GitHub entirely, write straight to iCloud" as a legitimate delete candidate. The abstraction level of your primitives determines what Step 2 can reach — too specific and Step 2 is handcuffed; too vague and you can't evaluate whether a request moves a primitive at all. Aim for the smallest set of roles that any valid implementation would require.
+
+These are the things you will NOT delete in Step 2.
 
 ### Q1.4 — Does the request in front of us move one of those critical-path primitives?
 
