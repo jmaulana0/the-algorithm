@@ -28,7 +28,11 @@ const quiet = flag('--quiet');
 const log = quiet ? () => {} : (...msgs) => console.log(...msgs);
 const warn = (...msgs) => console.warn(...msgs);
 
-const dest = process.env.THE_ALGORITHM_DEST || path.join(os.homedir(), '.claude', 'skills', 'the-algorithm');
+const skillsRoot = process.env.THE_ALGORITHM_DEST
+  ? path.dirname(process.env.THE_ALGORITHM_DEST)
+  : path.join(os.homedir(), '.claude', 'skills');
+const dest = process.env.THE_ALGORITHM_DEST || path.join(skillsRoot, 'the-algorithm');
+const autoDest = path.join(skillsRoot, 'auto-algorithm');
 const settingsPath = path.join(os.homedir(), '.claude', 'settings.json');
 const HOOK_MARKER = 'the-algorithm@latest';
 const HOOK_COMMAND = 'npx --yes the-algorithm@latest --quiet --no-hook >/dev/null 2>&1 &';
@@ -46,7 +50,7 @@ if (flag('--uninstall-hook')) {
   process.exit(0);
 }
 
-// Install SKILL.md
+// Install the-algorithm SKILL.md
 const src = path.resolve(__dirname, '..', 'SKILL.md');
 if (!fs.existsSync(src)) {
   console.error(`✗ SKILL.md not found at ${src}`);
@@ -54,7 +58,15 @@ if (!fs.existsSync(src)) {
 }
 fs.mkdirSync(dest, { recursive: true });
 fs.copyFileSync(src, path.join(dest, 'SKILL.md'));
-log(`✓ Installed SKILL.md → ${path.join(dest, 'SKILL.md')}`);
+log(`✓ Installed the-algorithm → ${path.join(dest, 'SKILL.md')}`);
+
+// Install auto-algorithm sister skill (best-effort; skip if source missing)
+const autoSrc = path.resolve(__dirname, '..', 'auto-algorithm', 'SKILL.md');
+if (fs.existsSync(autoSrc)) {
+  fs.mkdirSync(autoDest, { recursive: true });
+  fs.copyFileSync(autoSrc, path.join(autoDest, 'SKILL.md'));
+  log(`✓ Installed auto-algorithm → ${path.join(autoDest, 'SKILL.md')}`);
+}
 
 // Install auto-upgrade hook unless opted out
 if (!flag('--no-hook')) {
@@ -75,11 +87,14 @@ if (!flag('--no-hook')) {
 
 log('');
 log('the-algorithm is ready. Invoke it in Claude Code with:');
-log('  /the-algorithm');
+log('  /the-algorithm         # interactive — one AskUserQuestion per turn');
+log('  /auto-algorithm        # autonomous — Step 1 interactive, Steps 2–5 auto');
 if (!quiet) {
   log('');
-  log('It will also auto-trigger on decision-shaped prompts — feature requests,');
+  log('the-algorithm auto-triggers on decision-shaped prompts — feature requests,');
   log('refactors, migrations, new tools/vendors/hires, process changes.');
+  log('auto-algorithm is opt-in: invoke it when you want the full treatment without');
+  log('clicking through every Step 2–5 question.');
 }
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -145,7 +160,12 @@ function uninstallHook() {
 }
 
 function uninstallSkill() {
-  if (!fs.existsSync(dest)) return;
-  fs.rmSync(dest, { recursive: true, force: true });
-  log(`✓ Removed ${dest}`);
+  if (fs.existsSync(dest)) {
+    fs.rmSync(dest, { recursive: true, force: true });
+    log(`✓ Removed ${dest}`);
+  }
+  if (fs.existsSync(autoDest)) {
+    fs.rmSync(autoDest, { recursive: true, force: true });
+    log(`✓ Removed ${autoDest}`);
+  }
 }

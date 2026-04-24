@@ -32,8 +32,11 @@ That's it. This:
 Claude Code picks up the skill on decision-shaped prompts, or invoke it explicitly:
 
 ```
-/the-algorithm
+/the-algorithm         # interactive — one AskUserQuestion per turn
+/auto-algorithm        # autonomous — Step 1 interactive, Steps 2–5 auto-decided
 ```
+
+`auto-algorithm` is a sister skill installed alongside `the-algorithm`. It runs Step 1 interactively (goal, gap, primitives — where your judgment is load-bearing) and then executes Steps 2 (Delete), 3 (Optimise), 4 (Accelerate / build E2E), and 5 (Automate) autonomously, making every decision itself based on your Step 1 answers and repo context. Use it when you want the full five-step treatment without clicking through every question. It still refuses to self-declare E2E pass — Q4.1 always comes back to you.
 
 [![npm version](https://img.shields.io/npm/v/the-algorithm.svg?color=cb3837&logo=npm&logoColor=white)](https://www.npmjs.com/package/the-algorithm)
 
