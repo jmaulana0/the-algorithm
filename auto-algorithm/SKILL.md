@@ -114,7 +114,24 @@ Output a Step 3 summary — chosen workflow, top experiment with its hypothesis 
 3. Commit with a message referencing: Q1.3 primitives, Q3.3 mode (works-now vs long-term), hypothesis being tested.
 4. Run the full E2E flow — test suite, manual run, or integration test as appropriate.
 5. Surface logs and pass/fail immediately.
-6. If the run fails, loop back autonomously between Steps 2↔3 — pick the next-ranked experiment, or a smaller minimization cluster, or retry with a different tradeoff. Announce the loop: "E2E failed at primitive X. Looping back to Step 3; dropping experiment #1, trying #2." After three consecutive failures, stop and surface to the user.
+6. If the run fails, loop back autonomously between Steps 2↔3 — pick the next-ranked experiment, or a smaller minimization cluster, or retry with a different tradeoff. **Before re-entering, print the trace block below.** After three consecutive failures, stop and surface to the user.
+
+### Trace-feeding between loop-backs (hard rule)
+
+Before every 2↔3 re-entry, print exactly this block:
+
+```
+What the last run told us:
+- Observable output: <what actually happened in the E2E run — the symptom, the log line, the broken hop>
+- Invalidated: <which Q1.3 primitive's role failed OR which Q3.2 assumption broke — name it explicitly>
+- Forcing decision: <the one Step 2 pick or Step 3 ranking this changes for the next pass>
+```
+
+Each loop iteration must be conditioned on the prior cycle's trace, not on vibes. The block is the auto-regressive discipline — same iteration count as before, but each one is explicitly learning. No block, no re-entry. If you can't fill a line with concrete content (not "something broke" but "webhook returned 502 on the `/commit` hop"), the prior run wasn't diagnosed well enough to justify picking — go verify before looping.
+
+**Three-strikes guardrail with teeth.** After three consecutive strikes, read the three trace blocks side by side. If the "Invalidated" and "Forcing decision" lines read substantially similar across strikes, that's a Step 1 problem — the primitives in Q1.3 are wrong or the goal in Q1.1 is wrong. Stop the 2↔3 loop and loop all the way back to Step 1 with the three traces as evidence. Don't keep firing strikes that can't distinguish themselves from each other.
+
+**What this is NOT.** This is not a "cycle until optimal" outer loop. Q4.1 = A (user-confirmed final outcome) still exits Step 4 immediately. Cycling past a user-confirmed pass is optimization theatre — the refine-forever trap where each iteration generates text that sounds like improvement without moving a primitive. Trace-feeding operates strictly *inside* the existing failure-driven 2↔3 loop; it doesn't create a new outer loop.
 
 **Guardrails — unchanged from the-algorithm:**
 - Scope is limited to the Q2.1 minimized change.
