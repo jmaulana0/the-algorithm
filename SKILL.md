@@ -1,6 +1,6 @@
 ---
 name: the-algorithm
-description: Interactive decision framework adapted from Elon Musk's five-step method. Walks you through discrete AskUserQuestion prompts — one at a time — to find the real bottleneck, reason from first principles, and commit to the simplest reliable approach. Use BEFORE acting on any non-trivial decision — feature request, refactor, migration, new tool/vendor/hire, process change, meeting, policy, roadmap item. Skip for single-line typos or when the user has given explicit "just do it" instructions. Prevents over-engineering, scope creep, and premature automation. Five steps — 1) Question 2) Delete 3) Optimise (simplify + options + experiments) 4) Accelerate (get it working end-to-end) 5) Automate — strictly in order, with Steps 2↔3 looping as needed when Step 4 uncovers failures.
+description: Interactive decision framework adapted from Elon Musk's five-step method. Walks you through discrete AskUserQuestion prompts — one at a time — to find the real bottleneck, reason from first principles, and commit to the simplest reliable approach. Use BEFORE acting on any non-trivial decision — feature request, refactor, migration, new tool/vendor/hire, process change, meeting, policy, roadmap item. Skip for single-line typos or when the user has given explicit "just do it" instructions. Prevents over-engineering, scope creep, and premature automation. Five steps — 1) Question 2) Minimize (delete + simplify as one — smallest version that still closes the gap) 3) Optimise how the surviving pieces fit together 4) Accelerate (get it working end-to-end) 5) Automate — strictly in order, with Steps 2↔3 looping as needed when Step 4 uncovers failures.
 ---
 
 # The Algorithm
@@ -12,8 +12,8 @@ Default bias: **most decisions end at Step 2.** Steps 3, 4, and 5 only run when 
 The five steps:
 
 1. **Question** the requirement — reason from first principles; what's the goal, gap, and the primitives on the critical path?
-2. **Delete** — remove anything unnecessary. Pure removal. If nothing survives, the problem is gone and you stop here.
-3. **Optimise what remains** — this is where simplification, options, tradeoffs, workflow design, and ranked experiments all live. Take what survived Step 2 and make it as lean, well-designed, and testable as possible.
+2. **Minimize** — find the smallest version of this that still runs end-to-end. Delete is the aggressive end of that spectrum; replacing something with a smaller form is the rest. If the minimized version fully closes the gap, you stop here.
+3. **Optimise how the surviving pieces fit together** — design interactions, generate workflow variants, rank them as experiments.
 4. **Accelerate** — urgency is the point. Run the top experiment end-to-end as fast as possible (the skill can build and test it in a worktree on request). If it fails, **loop back between Steps 2 and 3** until it runs clean.
 5. **Automate** — only after the thing works end-to-end, is as simple as possible, and is optimised.
 
@@ -37,8 +37,8 @@ The five steps:
 - **Keep every prompt crisp.** The Q descriptions below are reference material for you — when you actually fire `AskUserQuestion`, the user-facing text should be one short sentence plus the options. Don't paste rationale, examples, or framing into the prompt. The user should feel like they're in a fast conversation, not filling out a 20-question form.
 - **Hard rule — every question is an `AskUserQuestion` with options. No pure free-text prompts, ever.** The final option is always **"Other — I'll describe"**, which on selection invites a plain-text reply in the next turn. Zero exceptions: goals, gaps, primitives, delete candidates, workflow shapes, tradeoffs, experiments — all of them get 3–4 candidate picks plus the Other escape. If the answer space is genuinely open, *you* generate the candidates from the context the user has already given you (invocation text, prior Q answers, files in the repo). Pure free-text means the user stares at a wall of prose and has to type — that's too much cognitive load when 3 clicks plus an escape hatch work better. If you truly cannot propose candidates, ask one narrow clarifying question that itself has options (e.g. "Is this about [domain A], [domain B], or [domain C]?") — don't fall back to a blank prompt.
 - **Always make the first option your recommendation.** Every `AskUserQuestion` must order candidates so that the one *you* would pick — based on Step 1 goal, primitives, and prior answers — is option **A**, and the label reads like "A. **(recommended)** …". The user accepts with one click, scans the alternatives, or picks "Other". Never show a neutral list where the user has to infer your view — being opinionated up front is what makes the skill fast. The rule applies even when the user ultimately disagrees; the goal is to surface your judgment so they can react to it, not to hide behind balance.
-- **Skip obvious answers in Steps 2–4.** When a question in Step 2, 3, or 4 has a single clearly correct answer — one obvious delete cluster with no real competitors, one obvious simplest version, one obvious way to verify E2E — do NOT fire the `AskUserQuestion`. State the answer as an assumption inline and proceed: *"**Assuming Q3.1 = A. One config line** (`useNotion` flag flip). Proceeding unless you stop me."* The user can interrupt at any time; this just saves click-fatigue on non-decisions. The bar for skipping is high: *no meaningful alternatives exist*. If there are two plausible answers, always ask. **Step 1 never auto-advances** — the thinking layer always fires; that's where the skill's value lives. Steps 2–4 are for executing on Step 1's thinking, and executing should be fast when the path is clear.
-- **Complete the work when you can — do not hand it back.** Once Steps 1–3 have produced a clear goal, primitive list, delete cluster, and chosen experiment, the default behaviour in Step 4 is *you build it*. Do not ask the user to implement the change themselves unless (a) the tools available to this session genuinely cannot make the edit (e.g. no write access, no shell, no browser for the specific surface), or (b) the user has explicitly asked to drive manually. "I could build it but asking is safer" is not a reason — it's friction. If Steps 1–3 left ambiguity that makes it impossible to execute without further decisions, loop back to Step 3 and resolve the ambiguity; do not push the execution onto the user as a workaround for your own uncertainty. The skill exists to produce an outcome, not a shopping list.
+- **Skip obvious answers in Steps 2–4.** When a question in Step 2, 3, or 4 has a single clearly correct answer — one obvious minimization pick with no real competitors, one obvious workflow shape, one obvious way to verify E2E — do NOT fire the `AskUserQuestion`. State the answer as an assumption inline and proceed: *"**Assuming Q2.1 = A. No-deletion minimum implementation** (`useNotion` flag flip). Proceeding unless you stop me."* The user can interrupt at any time; this just saves click-fatigue on non-decisions. The bar for skipping is high: *no meaningful alternatives exist*. If there are two plausible answers, always ask. **Step 1 never auto-advances** — the thinking layer always fires; that's where the skill's value lives. Steps 2–4 are for executing on Step 1's thinking, and executing should be fast when the path is clear.
+- **Complete the work when you can — do not hand it back.** Once Steps 1–3 have produced a clear goal, primitive list, minimization pick, and chosen experiment, the default behaviour in Step 4 is *you build it*. Do not ask the user to implement the change themselves unless (a) the tools available to this session genuinely cannot make the edit (e.g. no write access, no shell, no browser for the specific surface), or (b) the user has explicitly asked to drive manually. "I could build it but asking is safer" is not a reason — it's friction. If Steps 1–3 left ambiguity that makes it impossible to execute without further decisions, loop back to Step 3 and resolve the ambiguity; do not push the execution onto the user as a workaround for your own uncertainty. The skill exists to produce an outcome, not a shopping list.
 
 ---
 
@@ -102,98 +102,83 @@ Branch:
 
 ---
 
-## Step 2 — Delete
+## Step 2 — Minimize (delete + simplify as one)
 
-Pure removal. Nothing else. If the right thing to delete makes the problem disappear entirely, you stop here — no Step 3, no build, no ship. Simplification, tradeoffs, workflow design, and experiments all live in Step 3, not here.
+Musk's original labels the second and third steps "delete" and "simplify" separately. In practice they answer one question: **what's the smallest version of this that still runs end-to-end?** Delete is the aggressive end of that spectrum; replacing something with a smaller form is the rest of it. Treat them as one loop.
 
-**Anchor:** the primitives named in Q1.3 are load-bearing. Never delete them. Everything composed *on top of* primitives is a candidate.
+**Anchor:** the primitives named in Q1.3 are load-bearing. Never delete a primitive. Anything composed *on top of* the primitives is a candidate for removal OR for replacement with a smaller form.
 
-### Q2.1 — What existing thing, if removed, would make this problem disappear?
+**Default bias:** most decisions end here. Steps 3, 4, and 5 only run when minimization didn't fully close the Q1.2 gap AND the surviving scope has real tradeoffs, integration risk, or repetition to justify continuing.
 
-Push for aggressive candidates. `AskUserQuestion` with 3–4 concrete delete candidates you've inferred from the repo / prior answers (the bigger and more load-bearing, the better), plus **"Other — I'll describe"**. Categories to draw from:
+### Q2.1 — What's the smallest version that still closes the Q1.2 gap?
 
-- A fallback, a legacy code path, an auto-detection routine
-- A config option nobody uses, a feature flag that's permanently on/off
-- A process step, a meeting, an approval gate
-- A vendor or tool used for one corner case
+`AskUserQuestion` with 3–4 candidates ordered delete-first. The spectrum to cover, in this order:
 
-**Frame each candidate as a cluster, not a single line.** A delete candidate is *one root thing plus everything that becomes dead code because of it* — the files, branches, env vars, commits that only exist to support the root. Name the dependents inline so the user sees the full scope of what a pick actually removes. Example: "Delete Notion entirely (`lib/notion.ts`, `lib/upload.ts`, the `useNotion` branch in `api/webhook.ts`, `NOTION_*` env vars)" — one pick, whole cluster.
+1. **Biggest safe deletion cluster** — the largest root + dependents you can justify from Step 1 + repo context. Frame as a cluster (files, branches, env vars, call sites that only exist to support the root) so the user sees the full scope of what a pick removes.
+2. **Smaller deletion + tiny replacement** — delete cluster Y, one-config-flip what remains.
+3. **No deletion, minimum implementation** — one config line / env var / flag flip, OR a small function (<30 lines) in an existing file.
+4. **No deletion, larger implementation** — new module / service / refactor. Only include as a candidate if the smaller options visibly can't close the gap.
 
-**One cluster per Step 2 pass.** Aggressive *within* a cluster, conservative *across* clusters — otherwise if the delete causes a problem you can't tell which piece broke things. If the first delete doesn't remove the whole problem, a second cluster delete happens in the *next* Step 2 pass, triggered by the 2↔3 loop after Step 4 validates the first one. Never propose multi-cluster deletes in the same question.
+Plus **"Other — I'll describe"**.
 
-### Q2.2 — If you delete that thing, does the original problem still need solving?
+**Rules:**
 
-`AskUserQuestion`:
-- **A.** No — deleting solves it entirely
-- **B.** Partially — it shrinks the problem
-- **C.** Yes — the problem remains
-- **D.** Nothing comes to mind
+- Candidate A is always your recommendation, labelled **A. (recommended)**.
+- If you cannot justify any deletion cluster from the repo + Step 1 context, say so explicitly in the prompt: *"no safely removable cluster found; smallest viable implementation is X"* — and make that option A. This is a first-class answer, not a pushback trigger.
+- Frame every candidate as a concrete change — specific files, specific config keys, specific call sites. Never abstract.
+- One cluster per pass. Aggressive *within* a cluster, conservative *across* clusters. If the first pick doesn't fully close the gap, the Step 2↔3 loop brings us back here for the next cluster in the next pass.
 
-Branch:
-- **A / B** → ask Q2.3
-- **C** → proceed to Step 3 with the full-size request; nothing deletable found
-- **D** → push back once: "Re-read your Q1.3 list — anything composed *on top of* those primitives is a candidate." Ask Q2.1 again. If still D → proceed to Step 3 with the full-size request.
-
-### Q2.3 — Does the delete candidate break any primitive from Q1.3?
+### Q2.2 — Does the minimized version still exercise every Q1.3 primitive that sits on the path to the goal?
 
 `AskUserQuestion`:
-- **A.** No — pure overhead sitting on top of the primitives
-- **B.** Partially — it supports a primitive but isn't the primitive itself
-- **C.** Yes — deleting it removes something in Q1.3
+- **A. (recommended)** Yes — every primitive on the path to the goal is still reachable
+- **B.** Partially — it drops a primitive I had listed in Q1.3
+- **C.** No — it removes something from Q1.3 that is genuinely on-path
 
 Branch:
-- **A** → safe delete. If Q2.2 = A → **Verdict: Delete, don't add.** Skip to Conclusion — Step 3+ do not run. Otherwise apply the delete and proceed to Step 3 with what survives.
-- **B** → accept the delete but flag it. Apply the delete and proceed to Step 3 with what survives.
-- **C** → reject. Loop back to Q2.1 and find a different candidate. Never delete a primitive.
+- **A** → proceed to Q2.3
+- **B** → either the primitive wasn't actually on-path (loop back to Q1.3 and sharpen), OR the minimization went too far (loop back to Q2.1 with a less aggressive candidate). Ask the user which.
+- **C** → reject the pick. Loop back to Q2.1 with different candidates. Never delete a Q1.3 primitive.
 
-End of Step 2. Either the problem is gone (skip to Conclusion) or you have a smaller-scoped request to take into Step 3.
+### Q2.3 — Does the minimized version fully close the Q1.2 gap?
+
+`AskUserQuestion`:
+- **A. (recommended if a deletion was picked in Q2.1)** Yes — entirely. No further work needed.
+- **B.** Partially — it shrinks the gap; what's left has real tradeoffs or interactions worth designing
+- **C.** No — the gap remains largely intact
+
+Branch:
+- **A** → **Verdict: apply the minimized change.** Skip to Conclusion. Step 3+ do not run. This is the highest-value outcome of the whole skill — take it whenever it is genuinely available.
+- **B** → proceed to Step 3 with the surviving scope. Step 3 designs how the surviving pieces fit together.
+- **C** → the minimization didn't help. Loop back to Q2.1 (try a bigger cluster) or to Step 1 (primitives missing from Q1.3).
+
+### Step 2 summary (always print before moving on)
+
+Before firing Q3.1 or skipping to the Conclusion, print exactly:
+
+```
+Minimized scope: <one-line description of the Q2.1 pick>
+Primitives preserved: <comma-separated list from Q1.3>
+Out of scope: <2–3 things explicitly not being done this pass>
+```
+
+"Out of scope" is load-bearing — it locks in scope discipline that the old Step 3's Q3.3 used to enforce. Make the cuts concrete (file paths, feature names, platforms).
 
 ---
 
-## Step 3 — Optimise what remains
+## Step 3 — Optimise how the surviving pieces fit together
 
-Step 2 pruned the tree. Step 3 takes what survived and makes it **lean, well-designed, and testable**. Three phases, six questions total:
+Step 2 minimized the scope. Step 3 takes what survived and designs how it connects: **interactions, workflow variants, ranked experiments**. Three questions.
 
-- **Make it lean** (Q3.1 simplest version → Q3.2 tradeoffs → Q3.3 scope cuts)
-- **Design how it fits together** (Q3.4 interactions → Q3.5 workflow variants)
-- **Make it testable** (Q3.6 rank as experiments)
+Skip Step 3 entirely if the surviving scope is a one-liner with no interactions to design — there is nothing to optimise. Go straight to Step 4.
 
-Skip Step 3 entirely if the surviving request is a one-liner (one config flip, one tiny function) with no real tradeoffs or interactions — there's nothing to optimise.
+### Q3.1 — How do the surviving pieces need to interact?
 
-### Q3.1 — What's the simplest version of what remains?
+`AskUserQuestion` with 3–4 candidate flow descriptions you've generated from the surviving pieces — each a short sentence saying who calls whom, where humans are in the loop, where async boundaries are, where state lives. Plus **"Other — I'll describe"**. Candidate A is your recommendation.
 
-`AskUserQuestion`:
-- **A.** One config line / env var / flag flip
-- **B.** A small function (<30 lines) in an existing file
-- **C.** A new file or module in an existing service
-- **D.** A new service, platform, or major refactor
-- **E.** Not sure yet
+### Q3.2 — What are the options and tradeoffs for that interaction?
 
-Branch:
-- **A / B** → minimal scope. Continue to Q3.2 only if there are obvious tradeoffs; otherwise skip to Step 4.
-- **C / D** → continue to Q3.2 — scope needs pressure.
-- **E** → ask the user to sketch for 5 minutes, then retry.
-
-### Q3.2 — What tradeoffs are on the table?
-
-`AskUserQuestion` with 2–4 concrete tradeoffs *you've generated* from the current design, each naming what gets shrunk or what character changes. Plus **"Other — I'll describe"**. Axes to draw from:
-- Handle one case vs both
-- Manual config vs auto-detection
-- Ship as manual-run vs pre-automate
-- Error message vs silent fallback
-- Fewer primitives supported vs more
-
-### Q3.3 — What are you NOT going to do?
-
-`AskUserQuestion` with 3–4 concrete cut candidates you've drawn from the answers to Q3.1/Q3.2 — things visibly in scope that could be dropped. Plus **"Other — I'll describe"**. If the user picks nothing meaningful to cut, scope is still too big — loop back to Q3.1.
-
-### Q3.4 — How do the remaining pieces need to interact?
-
-`AskUserQuestion` with 3–4 candidate flow descriptions you've generated from the surviving pieces — each a short sentence saying who calls whom, where humans are in the loop, where async boundaries are, where state lives. Plus **"Other — I'll describe"**.
-
-### Q3.5 — What are the options and tradeoffs for that interaction?
-
-Generate 2–4 **alternative workflow variants** (based on Q3.4) — these are competing ways to do the same thing, not sub-questions of one approach. For every option, **explicitly tag it (a) "works now, even if brittle" or (b) "more robust long-term but higher initial effort"** — this works-now-vs-long-term axis is the key tension Step 4 will act on. Emit as an `AskUserQuestion` with each variant as a pick, plus an "Other — I'll describe a different approach" escape.
+Generate 2–4 **alternative workflow variants** — competing ways to do the same thing, not sub-questions of one approach. For every option, **explicitly tag it (a) "works now, even if brittle" or (b) "more robust long-term but higher initial effort"** — this works-now-vs-long-term axis is the key tension Step 4 will act on. Emit as an `AskUserQuestion` with each variant as a pick, plus **"Other — I'll describe a different approach"**. Candidate A is your recommendation.
 
 **Surface sub-questions, don't swallow them.** If after the main variant pick you have meaningful implementation choices (filename format, embed syntax, folder location, etc.), list them for the user with a recommended default for each — but do not skip them on their behalf. The user decides which deserve attention; your job is to make the choice visible and tag your default so they can accept-or-flip quickly.
 
@@ -205,16 +190,16 @@ Common axes if you need to generate genuine variants:
 - Tight coupling vs explicit contract
 - Single shared store vs per-component state
 
-### Q3.6 — Rank them as experiments to try
+### Q3.3 — Rank them as experiments to try
 
-Produce a ranked list (2–4 items, most-promising first) as a written draft, then fire an `AskUserQuestion` with the ranking choices as picks ("**Go with #1**", "**Swap #1 and #2**", "**Drop #N**", etc.) plus **"Other — I'll re-rank"**. Each entry in the written draft should be:
+Produce a ranked list (2–4 items, most-promising first) as a written draft, then fire an `AskUserQuestion` with ranking choices as picks (**"Go with #1"**, **"Swap #1 and #2"**, **"Drop #N"**, etc.) plus **"Other — I'll re-rank"**. Each entry in the written draft should be:
 - **Name:** short label for the variant
 - **Hypothesis:** the one thing it assumes will hold true
 - **Cheapest test:** the smallest thing you could run to find out if the hypothesis breaks
 - **Signal:** what result would invalidate it
 - **Mode:** "works-now (brittle)" OR "long-term robust" — which tradeoff this experiment buys
 
-End of Step 3 with: (a) the simplest surviving scope, (b) explicit cuts the user accepted, (c) a concrete workflow picture, (d) a ranked experiment list tagged with works-now-vs-long-term mode. Step 4 acts on the top-ranked experiment — pick brittle-but-fast when you need to learn, robust when the cost of rework is higher than the cost of delay.
+End of Step 3 with: (a) a concrete workflow picture, (b) a ranked experiment list tagged with works-now-vs-long-term mode. Step 4 acts on the top-ranked experiment — pick brittle-but-fast when you need to learn, robust when the cost of rework is higher than the cost of delay.
 
 ---
 
@@ -228,7 +213,7 @@ Accelerate here means **get the thing running through the full flow with no fail
 
 ### Q4.0 — Proceed to build? (default: yes, skip the ask)
 
-**Default behaviour: skip this question entirely and go straight to the auto-build flow below.** By the time you reach Step 4, Steps 1–3 have produced a clear goal, primitives list, delete cluster, chosen experiment, and hypothesis. You already have everything you need — executing is your job. Per the "Complete the work when you can" operating rule, ask Q4.0 only when one of these is genuinely true:
+**Default behaviour: skip this question entirely and go straight to the auto-build flow below.** By the time you reach Step 4, Steps 1–3 have produced a clear goal, primitives list, minimization pick, chosen experiment, and hypothesis. You already have everything you need — executing is your job. Per the "Complete the work when you can" operating rule, ask Q4.0 only when one of these is genuinely true:
 
 - The session **cannot** make the required edits (no write access to the target system, required credentials not available, the work lives in a surface this skill can't reach)
 - The user has **explicitly** asked to drive manually this run
@@ -241,20 +226,20 @@ If you must ask, `AskUserQuestion`:
 
 Branches:
 - **A** (and the default, unasked path) → proceed to the auto-build flow below, then apply Q4.1
-- **B** → emit one concrete paragraph naming exactly what to change (files, lines, config keys), citing the Q1.3 primitives, the Q3.6 hypothesis, and the Q3.3 cut-scope. Wait at Q4.1.
+- **B** → emit one concrete paragraph naming exactly what to change (files, lines, config keys), citing the Q1.3 primitives, the Q3.3 hypothesis, and the Q2.1 out-of-scope list. Wait at Q4.1.
 - **C** → loop back to Step 3. Don't ship an experiment the user isn't confident in.
 
 **Auto-build flow (default path, or Q4.0 = A if asked):**
 1. Create an isolated workspace. Prefer `git worktree add ../worktrees/accel-<slug>` where `<slug>` is a short kebab-case version of the experiment name; fall back to a branch `accel-<slug>` if worktrees aren't available. Tell the user which you chose.
-2. Implement ONLY the minimal change from Q3.1. Do not scaffold, do not add tests beyond what E2E needs, do not pre-build for the losing experiments. If you find yourself writing setup code beyond the change, stop and ask.
-3. Commit with a message that references: the primitives from Q1.3, the tradeoff mode from Q3.6 (works-now vs long-term), and the hypothesis the experiment is testing.
+2. Implement ONLY the minimized change from Q2.1. Do not scaffold, do not add tests beyond what E2E needs, do not pre-build for the losing experiments. If you find yourself writing setup code beyond the change, stop and ask.
+3. Commit with a message that references: the primitives from Q1.3, the tradeoff mode from Q3.3 (works-now vs long-term), and the hypothesis the experiment is testing.
 4. Run the full E2E flow — test suite, manual run, or integration test as appropriate for the codebase.
 5. Surface pass/fail and relevant logs/artifacts immediately.
 6. If the run fails, ask whether to delete the branch/worktree before looping back to Step 2↔3.
 
 **Guardrails that MUST hold in branch A:**
 - Explicit user consent was captured via Q4.0 = A — do not infer consent from anything else.
-- Scope is limited to the minimal change from Q3.1. Enforce this hard — rework-creep kills the urgency that makes this step work.
+- Scope is limited to the minimized change from Q2.1. Enforce this hard — rework-creep kills the urgency that makes this step work.
 - Never push the branch, open a PR, or deploy without a separate user confirmation. Auto-build is for local verification, not shipping.
 - If the experiment fails, the default offer is to delete the branch and loop back — do not polish a failing approach.
 
@@ -278,7 +263,7 @@ Branch:
 **Hard rule:** the skill NEVER self-declares pass. The confirmation must come from the user's own observation of the final outcome described in Q1.1. "Tests passed" emitted by Claude is not a pass. Telemetry is not a pass. Only the user's eyes on the goal = pass.
 
 Common failure modes that trigger the 2↔3 loop:
-- A component turned out to need more than its simplest form → Q3.1 was too aggressive, pick differently
+- A component turned out to need more than its simplest form → Q2.1 was too aggressive, pick differently
 - A primitive was missing from Q1.3 → loop all the way back to Step 1
 - The top experiment's hypothesis broke → drop it, re-rank, try the next-most-promising handoff from Q3.3
 - The design works but is too brittle → Step 2 to cut scope, Step 3 to re-generate workflow options
@@ -291,7 +276,7 @@ Common failure modes that trigger the 2↔3 loop:
 Three-gate hard-enforcement: automate ONLY if **all three** are true in this conversation:
 
 1. The thing works end-to-end (Q4.1 = A)
-2. It's as simple as possible (Step 2 ran; Q3.1 chosen and Q3.3 named a cut)
+2. It's as simple as possible (Step 2 ran; Q2.1 pick made and out-of-scope items named)
 3. It's optimised (Step 3 ran, OR skipped intentionally because there were no real tradeoffs)
 
 If ANY of the three is unchecked → refuse and loop back to the failing gate.
@@ -350,7 +335,7 @@ Trigger when the user pastes ≥3 feedback points at once.
 | Pattern in their answer | Flag |
 |---|---|
 | "Just in case…" / "for future flexibility" | "No one has asked for this yet — Step 1 verdict should be *Record*, not *Do*." |
-| "We need to auto-detect…" | "One config line almost always beats detection. Revisit Q3.1." |
+| "We need to auto-detect…" | "One config line almost always beats detection. Revisit Q2.1." |
 | "Let's automate this" (before Steps 1–4) | "Automate is Step 5. What are the primitives? Has it run end-to-end?" |
 | "Add a review/approval step…" | "Reacting to one incident with permanent process. Re-check Q1.5 frequency." |
 | "Hire a new role to handle X…" | "Can the work be simplified in Step 2 so it doesn't need a role?" |
@@ -367,9 +352,9 @@ Trigger when the user pastes ≥3 feedback points at once.
 > Q1.3 Primitives → *"User model, session store, product list query."*
 > Q1.4 On-path? → **A. Now** (DB round-trips are blocking the goal)
 > Q1.5 Frequency → **A. Common**
-> Q2.1 Delete candidate → *"We're re-fetching the same product list on every render."*
-> Q2.2 Does deletion solve it? → **A. Yes** → Q2.3
-> Q2.3 Breaks a primitive? → **A. No** (the re-fetch is overhead on top of the query)
+> Q2.1 Smallest version → **A.** Delete the redundant product-list fetches in the render path (cluster: 3 call sites in `components/Product*`; memoise once at the page level)
+> Q2.2 Primitives preserved? → **A.** Yes (the query itself stays; only the redundant calls go)
+> Q2.3 Closes the gap fully? → **A.** Yes (round-trip count drops from 3 to 1; 900ms → <200ms)
 >
 > **Conclusion:** Delete the redundant fetches. Caching layer not needed.
 
@@ -378,8 +363,8 @@ Trigger when the user pastes ≥3 feedback points at once.
 ## Pre-Action Checklist
 
 - [ ] Step 1 — goal, gap, primitives, on-path, frequency all answered
-- [ ] Step 2 — delete candidate considered; simplest version chosen; tradeoffs and cuts named
-- [ ] Step 3 — ran only if Step 2 left multiple pieces with interactions to design; produced a workflow picture + ranked experiments, or explicitly skipped
+- [ ] Step 2 — smallest-version candidate chosen; Q1.3 primitives preserved; out-of-scope items named
+- [ ] Step 3 — ran only if Step 2 left surviving scope with interactions worth designing; produced a workflow picture + ranked experiments, or explicitly skipped
 - [ ] Step 4 — ran only if reaching for automation or integration; loop-back used if E2E failed
 - [ ] Step 5 — ran only if all three gates are satisfied
 - [ ] Final Conclusion block present with Decision, Why, Next action
